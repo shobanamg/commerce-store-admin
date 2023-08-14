@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import type { FC } from 'react';
 
+import Navbar from '@/components/navbar';
+
 type DashBoardLayoutProps = {
   children: React.ReactNode;
   params: { storeId: string };
@@ -14,7 +16,12 @@ const DashboardLayout: FC<DashBoardLayoutProps> = async ({ children }) => {
     redirect('/sign-in');
   }
 
-  return <div>{children}</div>;
+  return (
+    <div>
+      <Navbar />
+      {children}
+    </div>
+  );
 };
 
 export default DashboardLayout;
