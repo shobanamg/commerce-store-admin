@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import type { FC } from 'react';
 
 import Navbar from '@/components/navbar';
+import prismadb from '@/lib/prismadb';
 
 type DashBoardLayoutProps = {
   children: React.ReactNode;
@@ -16,6 +17,15 @@ const DashboardLayout: FC<DashBoardLayoutProps> = async ({ children }) => {
     redirect('/sign-in');
   }
 
+  const store = await prismadb.store.findFirst({
+    where: {
+      userId,
+    },
+  });
+
+  if (!store) {
+    redirect('/');
+  }
   return (
     <div>
       <Navbar />
