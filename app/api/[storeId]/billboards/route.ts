@@ -14,6 +14,8 @@ export async function POST(
 
     const { label, imageUrl } = body;
 
+    console.log('[BILLBOARDS_POST]', 'hi');
+
     if (!userId) {
       return new NextResponse('Unauthenticated', { status: 403 });
     }
