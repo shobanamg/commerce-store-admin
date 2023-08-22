@@ -1,13 +1,15 @@
-import { auth } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 
+import { isUserStore } from '@/lib/api-utils';
 import prismadb from '@/lib/prismadb';
 
 export async function GET(
   req: Request,
-  { params }: { params: { categoryId: string } }
+  { params }: { params: { categoryId: string; storeId: string } }
 ) {
   try {
+    await isUserStore(params.storeId);
+
     if (!params.categoryId) {
       return new NextResponse('Category id is required', { status: 400 });
     }
@@ -33,25 +35,10 @@ export async function DELETE(
   { params }: { params: { categoryId: string; storeId: string } }
 ) {
   try {
-    const { userId } = auth();
-
-    if (!userId) {
-      return new NextResponse('Unauthenticated', { status: 403 });
-    }
+    await isUserStore(params.storeId);
 
     if (!params.categoryId) {
       return new NextResponse('Category id is required', { status: 400 });
-    }
-
-    const storeByUserId = await prismadb.store.findFirst({
-      where: {
-        id: params.storeId,
-        userId,
-      },
-    });
-
-    if (!storeByUserId) {
-      return new NextResponse('Unauthorized', { status: 405 });
     }
 
     const category = await prismadb.category.delete({
@@ -72,15 +59,11 @@ export async function PATCH(
   { params }: { params: { categoryId: string; storeId: string } }
 ) {
   try {
-    const { userId } = auth();
+    await isUserStore(params.storeId);
 
     const body = await req.json();
 
     const { name, billboardId } = body;
-
-    if (!userId) {
-      return new NextResponse('Unauthenticated', { status: 403 });
-    }
 
     if (!billboardId) {
       return new NextResponse('Billboard ID is required', { status: 400 });
@@ -92,17 +75,6 @@ export async function PATCH(
 
     if (!params.categoryId) {
       return new NextResponse('Category id is required', { status: 400 });
-    }
-
-    const storeByUserId = await prismadb.store.findFirst({
-      where: {
-        id: params.storeId,
-        userId,
-      },
-    });
-
-    if (!storeByUserId) {
-      return new NextResponse('Unauthorized', { status: 405 });
     }
 
     const category = await prismadb.category.update({

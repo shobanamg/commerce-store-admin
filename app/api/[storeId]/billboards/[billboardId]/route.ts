@@ -1,13 +1,15 @@
-import { auth } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 
+import { isUserStore } from '@/lib/api-utils';
 import prismadb from '@/lib/prismadb';
 
 export async function GET(
   req: Request,
-  { params }: { params: { billboardId: string } }
+  { params }: { params: { billboardId: string; storeId: string } }
 ) {
   try {
+    await isUserStore(params.storeId);
+
     if (!params.billboardId) {
       return new NextResponse('Billboard id is required', { status: 400 });
     }
@@ -30,25 +32,10 @@ export async function DELETE(
   { params }: { params: { billboardId: string; storeId: string } }
 ) {
   try {
-    const { userId } = auth();
-
-    if (!userId) {
-      return new NextResponse('Unauthenticated', { status: 403 });
-    }
+    await isUserStore(params.storeId);
 
     if (!params.billboardId) {
       return new NextResponse('Billboard id is required', { status: 400 });
-    }
-
-    const storeByUserId = await prismadb.store.findFirst({
-      where: {
-        id: params.storeId,
-        userId,
-      },
-    });
-
-    if (!storeByUserId) {
-      return new NextResponse('Unauthorized', { status: 405 });
     }
 
     const billboard = await prismadb.billboard.delete({
@@ -69,15 +56,11 @@ export async function PATCH(
   { params }: { params: { billboardId: string; storeId: string } }
 ) {
   try {
-    const { userId } = auth();
+    await isUserStore(params.storeId);
 
     const body = await req.json();
 
     const { label, imageUrl } = body;
-
-    if (!userId) {
-      return new NextResponse('Unauthenticated', { status: 403 });
-    }
 
     if (!label) {
       return new NextResponse('Label is required', { status: 400 });
@@ -89,17 +72,6 @@ export async function PATCH(
 
     if (!params.billboardId) {
       return new NextResponse('Billboard id is required', { status: 400 });
-    }
-
-    const storeByUserId = await prismadb.store.findFirst({
-      where: {
-        id: params.storeId,
-        userId,
-      },
-    });
-
-    if (!storeByUserId) {
-      return new NextResponse('Unauthorized', { status: 405 });
     }
 
     const billboard = await prismadb.billboard.update({
