@@ -7,7 +7,6 @@ import prismadb from '@/lib/prismadb';
 
 type DashBoardLayoutProps = {
   children: React.ReactNode;
-  params: { storeId: string };
 };
 
 const DashboardLayout: FC<DashBoardLayoutProps> = async ({ children }) => {
